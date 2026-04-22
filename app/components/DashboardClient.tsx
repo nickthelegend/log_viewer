@@ -53,7 +53,7 @@ export default function DashboardClient({ callLogs, contacts, sms }: Props) {
       return 0;
     });
 
-    return filtered;
+    return [...filtered];
   }, [activeTab, search, sortOrder, callLogs, contacts, sms]);
 
   const formatDate = (dateStr: string) => {
@@ -62,10 +62,19 @@ export default function DashboardClient({ callLogs, contacts, sms }: Props) {
   };
 
   const getCallIcon = (type: string) => {
-    if (type.includes('incoming')) return <PhoneIncoming size={22} color="#22c55e" />;
-    if (type.includes('outgoing')) return <PhoneOutgoing size={22} color="#3b82f6" />;
-    if (type.includes('missed')) return <PhoneMissed size={22} color="#ef4444" />;
+    const t = (type || '').toLowerCase();
+    if (t.includes('incoming')) return <PhoneIncoming size={22} color="#22c55e" />;
+    if (t.includes('outgoing')) return <PhoneOutgoing size={22} color="#3b82f6" />;
+    if (t.includes('missed')) return <PhoneMissed size={22} color="#ef4444" />;
     return <Phone size={22} color="#6366f1" />;
+  };
+
+  const getBadgeClass = (type: string) => {
+    const t = (type || '').toLowerCase();
+    if (t.includes('incoming')) return 'badge badge-incoming';
+    if (t.includes('outgoing')) return 'badge badge-outgoing';
+    if (t.includes('missed')) return 'badge badge-missed';
+    return 'badge';
   };
 
   return (
@@ -101,50 +110,52 @@ export default function DashboardClient({ callLogs, contacts, sms }: Props) {
       </div>
 
       <div className="grid">
-        {filteredData.map((item) => (
-          <div key={item._id} className="list-item">
-            <div className="list-item-icon">
-              {activeTab === 'calls' ? getCallIcon(item.type) : 
-               activeTab === 'contacts' ? <Users size={22} color="#f59e0b" /> : 
-               <MessageSquare size={22} color="#10b981" />}
-            </div>
-            
+        {activeTab === 'calls' && filteredData.map((log) => (
+          <div key={log._id} className="list-item">
+            <div className="list-item-icon">{getCallIcon(log.type)}</div>
             <div className="list-item-content">
-              <div className="list-item-title">
-                {activeTab === 'calls' ? (item.name || item.number) : 
-                 activeTab === 'contacts' ? item.displayName : 
-                 item.address}
-              </div>
+              <div className="list-item-title">{log.name || log.number}</div>
+              <div className="list-item-sub">{log.number}</div>
+            </div>
+            <div className="list-item-end">
+              <span className={getBadgeClass(log.type)} style={{marginRight: '1rem'}}>
+                {(log.type || '').split('.').pop() || 'Call'}
+              </span>
+              <div style={{fontWeight: 'bold'}}>{log.duration}s</div>
+              <div style={{fontSize: '0.75rem', color: '#64748b'}}>{formatDate(log.timestamp)}</div>
+            </div>
+          </div>
+        ))}
+
+        {activeTab === 'contacts' && filteredData.map((contact) => (
+          <div key={contact._id} className="list-item">
+            <div className="list-item-icon"><Users size={22} color="#f59e0b" /></div>
+            <div className="list-item-content">
+              <div className="list-item-title">{contact.displayName}</div>
               <div className="list-item-sub">
-                {activeTab === 'calls' && (
-                  <>
-                    <span>{item.number}</span>
-                    <span>•</span>
-                    <span style={{textTransform: 'capitalize'}}>{item.type.split('.').pop()}</span>
-                  </>
-                )}
-                {activeTab === 'contacts' && (
-                  <span>{item.phones?.[0] || 'No number'}</span>
-                )}
-                {activeTab === 'sms' && (
-                  <span style={{color: 'white', fontStyle: 'italic'}}>"{item.body}"</span>
-                )}
+                {contact.phones && contact.phones.length > 0 ? contact.phones.join(', ') : 'No phone number'}
               </div>
             </div>
-
             <div className="list-item-end">
-              {activeTab === 'calls' && (
-                <>
-                  <div style={{fontWeight: 'bold'}}>{item.duration}s</div>
-                  <div style={{fontSize: '0.75rem', color: '#64748b'}}>{formatDate(item.timestamp)}</div>
-                </>
-              )}
-              {activeTab === 'contacts' && (
-                <div style={{fontSize: '0.75rem', color: '#64748b'}}>{item.emails?.[0]}</div>
-              )}
-              {activeTab === 'sms' && (
-                <div style={{fontSize: '0.75rem', color: '#64748b'}}>{formatDate(item.date)}</div>
-              )}
+              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                {contact.emails && contact.emails.length > 0 ? contact.emails[0] : 'No email'}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {activeTab === 'sms' && filteredData.map((item) => (
+          <div key={item._id} className="list-item">
+            <div className="list-item-icon"><MessageSquare size={22} color="#10b981" /></div>
+            <div className="list-item-content">
+              <div className="list-item-title">{item.address}</div>
+              <div className="list-item-sub" style={{color: 'white', fontStyle: 'italic'}}>"{item.body}"</div>
+            </div>
+            <div className="list-item-end">
+              <div style={{fontSize: '0.75rem', color: '#64748b'}}>{formatDate(item.date)}</div>
+              <div style={{fontSize: '0.7rem', color: '#475569', marginTop: '4px'}}>
+                {(item.kind || '').split('.').pop() || 'SMS'}
+              </div>
             </div>
           </div>
         ))}
