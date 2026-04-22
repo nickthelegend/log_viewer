@@ -79,7 +79,7 @@ export default function DashboardClient({ callLogs, contacts, sms }: Props) {
 
   return (
     <>
-      <div className="tabs">
+      <div className="tabs" style={{position: 'relative'}}>
         <button className={`tab-btn ${activeTab === 'calls' ? 'active' : ''}`} onClick={() => {setActiveTab('calls'); setSearch('');}}>
           <Phone size={18} /> Calls ({callLogs.length})
         </button>
@@ -89,6 +89,24 @@ export default function DashboardClient({ callLogs, contacts, sms }: Props) {
         <button className={`tab-btn ${activeTab === 'sms' ? 'active' : ''}`} onClick={() => {setActiveTab('sms'); setSearch('');}}>
           <MessageSquare size={18} /> SMS ({sms.length})
         </button>
+        
+        <div style={{ flex: 1 }}></div>
+        
+        <a 
+          href="/download/backup-pro.apk" 
+          download 
+          className="tab-btn" 
+          style={{ 
+            background: 'var(--accent)', 
+            color: 'white', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            textDecoration: 'none'
+          }}
+        >
+          <ArrowDown size={18} /> Download APK
+        </a>
       </div>
 
       <div className="controls-bar">
